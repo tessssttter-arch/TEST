@@ -1,0 +1,117 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import catalog from '../../public/data/catalog.json';
+
+const items = catalog.items || [];
+const categories = ['Все', ...new Set(items.map(i => i.category))].sort();
+---
+<BaseLayout title="Каталог винтажной одежды" description="Уникальные архивные вещи, отобранные куратором.">
+  
+  <!-- Hero -->
+  <section class="bg-stone-900 text-white py-16 px-4">
+    <div class="max-w-7xl mx-auto text-center">
+      <h1 class="text-3xl md:text-5xl font-bold tracking-tight mb-4">Архивная винтажная одежда</h1>
+      <p class="text-stone-400 max-w-xl mx-auto text-sm md:text-base">Каждая позиция тщательно отобрана и проверена на подлинность.</p>
+    </div>
+  </section>
+
+  <!-- Filters -->
+  <div class="sticky top-16 z-30 bg-white/95 backdrop-blur border-b border-stone-200 py-3 px-4">
+    <div class="max-w-7xl mx-auto flex flex-wrap gap-2 items-center">
+      <span class="text-[10px] font-mono text-stone-400 uppercase font-bold mr-2">Категория:</span>
+      {categories.map(cat => (
+        <button 
+          data-filter={cat.toLowerCase()} 
+          class="filter-btn px-3 py-1.5 rounded-lg text-xs font-mono font-semibold transition-all border border-transparent hover:bg-stone-100 cursor-pointer"
+          class:list={[{ 'bg-stone-900 text-white': cat === 'Все' }, { 'bg-white text-stone-600 border-stone-200': cat !== 'Все' }]}
+        >
+          {cat}
+        </button>
+      ))}
+    </div>
+  </div>
+
+  <!-- Grid -->
+  <section class="max-w-7xl mx-auto px-4 py-8">
+    <div class="flex items-center justify-between mb-6">
+      <h2 class="text-xl font-bold">Актуальные позиции</h2>
+      <span id="items-count-display" class="text-xs font-mono text-stone-400">{items.length} товаров</span>
+    </div>
+
+    <div id="products-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      {items.map(p => (
+        <a 
+          href={`/product/${p.id}`} 
+          class="product-card group bg-white rounded-2xl border border-stone-200 overflow-hidden hover:shadow-xl hover:border-stone-300 transition-all duration-300 block"
+          data-category={p.category.toLowerCase()}
+        >
+          <div class="aspect-square overflow-hidden bg-stone-100 relative">
+            <img 
+              src={p.images[0]} 
+              alt={p.title} 
+              loading="lazy" 
+              decoding="async"
+              referrerpolicy="no-referrer"
+              class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            />
+            {p.tags.slice(0, 2).map((tag: string) => (
+              <span class="absolute top-3 left-3 px-2 py-1 bg-stone-900/80 backdrop-blur text-white text-[9px] font-mono rounded-md">#{tag}</span>
+            ))}
+          </div>
+          <div class="p-4 space-y-2">
+            <div class="flex justify-between items-center text-[10px] font-mono text-stone-400 uppercase">
+              <span>{p.category}</span>
+              <span>{p.sizes.join(', ')}</span>
+            </div>
+            <h3 class="font-semibold text-sm text-stone-900 line-clamp-2 min-h-[2.5em] leading-snug">{p.title}</h3>
+            <div class="flex items-center justify-between pt-3 border-t border-stone-100">
+              <span class="text-lg font-bold font-mono">{p.price.toLocaleString()} ₽</span>
+              <span class="text-[10px] font-mono text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full font-bold">В наличии</span>
+            </div>
+          </div>
+        </a>
+      ))}
+    </div>
+  </section>
+</BaseLayout>
+
+<script>
+  // Легкий Vanilla JS для фильтрации (0 КБ React!)
+  const buttons = document.querySelectorAll('.filter-btn');
+  const cards = document.querySelectorAll('.product-card');
+  const countDisplay = document.getElementById('items-count-display');
+
+  buttons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      // UI active state
+      buttons.forEach(b => {
+        b.classList.remove('bg-stone-900', 'text-white');
+        b.classList.add('bg-white', 'text-stone-600', 'border-stone-200');
+      });
+      btn.classList.remove('bg-white', 'text-stone-600', 'border-stone-200');
+      btn.classList.add('bg-stone-900', 'text-white');
+
+      // Filter logic
+      const filter = (btn as HTMLElement).dataset.filter!;
+      let visibleCount = 0;
+      cards.forEach(card => {
+        const match = filter === 'все' || (card as HTMLElement).dataset.category === filter;
+        (card as HTMLElement).style.display = match ? 'block' : 'none';
+        if (match) visibleCount++;
+      });
+      
+      if (countDisplay) {
+        countDisplay.textContent = `${visibleCount} ${getWordEnding(visibleCount)}`;
+      }
+    });
+  });
+
+  function getWordEnding(num: number): string {
+    const tens = num % 100;
+    const ones = num % 10;
+    if (tens > 10 && tens < 20) return 'товаров';
+    if (ones === 1) return 'товар';
+    if (ones >= 2 && ones <= 4) return 'товара';
+    return 'товаров';
+  }
+</script>

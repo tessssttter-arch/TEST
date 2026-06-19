@@ -1,0 +1,6 @@
+{
+  "name": "Vintage Store Platform",
+  "description": "A high-performance selective vintage storefront with local shopping cart persistence and customizable Telegram order generation.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

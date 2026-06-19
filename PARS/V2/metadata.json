@@ -1,0 +1,6 @@
+{
+  "name": "VK Insights Analyzer",
+  "description": "Инструмент для анализа, фильтрации и подготовки к выгрузке постов из ВКонтакте. Поддерживает загрузку ответов wall.get, умный парсинг цен, группировку медиа и гибкий экспорт в CSV.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

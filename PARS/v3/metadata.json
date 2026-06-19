@@ -1,0 +1,6 @@
+{
+  "name": "VK Insights Analyzer",
+  "description": "Умная система парсинга, фильтрации, калькуляции наценки и выгрузки постов из торговых сообществ ВКонтакте (Рынков Садовод и Южные Ворота).",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

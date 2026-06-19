@@ -1,0 +1,115 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import catalog from '../../../public/data/catalog.json';
+
+export function getStaticPaths() {
+  return (catalog.items || []).map(p => ({ params: { id: p.id }, props: p }));
+}
+
+const p = Astro.props;
+const canonical = `/product/${p.id}`;
+
+// Генерация Schema.org JSON-LD для Google
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Product",
+  "name": p.title,
+  "image": p.images,
+  "description": p.description,
+  "offers": {
+    "@type": "Offer",
+    "price": p.price,
+    "priceCurrency": "RUB",
+    "availability": "https://schema.org/InStock"
+  }
+};
+---
+<BaseLayout 
+  title={`${p.title} — ${p.price} ₽`}
+  description={p.description.slice(0, 150)}
+  image={p.images[0]}
+  url={canonical}
+  jsonLd={jsonLd}
+>
+  <main class="max-w-6xl mx-auto px-4 py-8 grid md:grid-cols-2 gap-10">
+    <!-- Галерея -->
+    <div class="space-y-4">
+      <div class="aspect-square rounded-2xl overflow-hidden bg-stone-100 border border-stone-200">
+        <img id="main-product-image" src={p.images[0]} alt={p.title} class="w-full h-full object-cover" referrerpolicy="no-referrer" />
+      </div>
+      {p.images.length > 1 && (
+        <div class="flex gap-2 overflow-x-auto pb-2">
+          {p.images.map((img: string, index: number) => (
+            <img 
+              src={img} 
+              alt={`${p.title} view ${index + 1}`}
+              class="thumbnail-img w-20 h-20 rounded-lg object-cover border border-stone-200 cursor-pointer hover:border-stone-450 transition-all" 
+              referrerpolicy="no-referrer" 
+            />
+          ))}
+        </div>
+      )}
+    </div>
+
+    <!-- Инфо -->
+    <div class="space-y-6">
+      <div>
+        <span class="text-[10px] font-mono uppercase tracking-widest text-stone-400">{p.category}</span>
+        <h1 class="text-2xl md:text-3xl font-bold text-stone-900 mt-1">{p.title}</h1>
+      </div>
+
+      <div class="flex items-baseline gap-3">
+        <span class="text-3xl font-bold font-mono">{p.price.toLocaleString()} ₽</span>
+        <span class="text-sm font-mono text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full font-bold">В наличии</span>
+      </div>
+
+      {p.sizes.length > 0 && (
+        <div class="space-y-2">
+          <span class="text-[10px] font-mono uppercase text-stone-400 font-bold">Размеры</span>
+          <div class="flex flex-wrap gap-2">
+            {p.sizes.map((s: string) => (
+              <span class="px-3 py-1.5 bg-stone-100 border border-stone-200 rounded-lg text-xs font-mono font-bold">{s}</span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div class="space-y-2">
+        <span class="text-[10px] font-mono uppercase text-stone-400 font-bold">Описание</span>
+        <p class="text-stone-600 text-sm leading-relaxed whitespace-pre-wrap">{p.description}</p>
+      </div>
+
+      {p.tags.length > 0 && (
+        <div class="flex flex-wrap gap-2 pt-2">
+          {p.tags.map((t: string) => (
+            <span class="px-2 py-0.5 bg-stone-50 border border-stone-200 text-stone-600 text-[10px] font-mono rounded-full">#{t}</span>
+          ))}
+        </div>
+      )}
+
+      <!-- Кнопка заказа в Telegram -->
+      <a 
+        href={`https://t.me/your_manager_bot?text=${encodeURIComponent(`Здравствуйте! Хочу заказать: ${p.title} (ID: ${p.id}, ${p.price}₽)`)}`}
+        target="_blank"
+        class="block w-full bg-stone-900 hover:bg-stone-800 text-white text-center py-4 rounded-xl font-bold transition shadow-lg mt-8"
+      >
+        📦 Заказать в Telegram
+      </a>
+    </div>
+  </main>
+</BaseLayout>
+
+<script>
+  // Простая галерея картинок
+  const mainImage = document.getElementById('main-product-image') as HTMLImageElement;
+  const thumbnails = document.querySelectorAll('.thumbnail-img');
+
+  thumbnails.forEach(thumb => {
+    thumb.addEventListener('click', () => {
+      const src = (thumb as HTMLImageElement).src;
+      if (mainImage) {
+        mainImage.src = src;
+      }
+    });
+  });
+</script>

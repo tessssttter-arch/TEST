@@ -1,0 +1,6 @@
+{
+  "name": "Webshare Proxy Dashboard",
+  "description": "Enterprise-консоль управления мультиаккаунтным пулом прокси Webshare. Поддерживает параллельную агрегацию по токенам, ротацию креденшалов и IP, экспорт списков и локальное кэширование.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
