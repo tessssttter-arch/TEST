@@ -14,6 +14,7 @@ import { calculateEditedPrice, DEFAULT_PRICE_CONFIG } from '../lib/price-utils';
 import { VKAccount, VKGroup, VKExportLog, VK_API } from '../lib/vk-api-client';
 import { TextIntelligence } from '../plugins/text-intelligence';
 import { VKPluginManager } from '../plugins/vk-manager';
+import { exportPostsToCatalogJsonV3 } from '../lib/catalog-exporter';
 
 // Определение структуры фильтров
 export interface FilterConfig {
@@ -100,6 +101,9 @@ interface PostsStoreContextType {
   // Управление профилями настроек экспорта
   saveExportProfile: (name: string, columns: string[]) => void;
   deleteExportProfile: (id: string) => void;
+  
+  // [AI-EDIT] Добавлен метод экспорта каталога | 2026-06-20 06:36
+  exportToCatalog: (filename?: string) => void;
 
   // Методы VK авторизации и парсинга
   loginVk: (account: VKAccount) => void;
@@ -514,6 +518,11 @@ export const PostsStoreProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     setExportProfiles((prev) => prev.filter((p) => p.id !== id));
   };
 
+  // [AI-EDIT] Метод экспорта каталога | 2026-06-20 06:38
+  const exportToCatalog = (filename?: string) => {
+    exportPostsToCatalogJsonV3(filteredPosts, filename);
+  };
+
   // Методы VK авторизации
   const loginVk = (account: VKAccount) => {
     setVkAccount(account);
@@ -886,6 +895,7 @@ export const PostsStoreProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         updateVisibleColumns,
         saveExportProfile,
         deleteExportProfile,
+        exportToCatalog,
         loginVk,
         logoutVk,
         setSelectedTargetGroupId,

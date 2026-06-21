@@ -10,6 +10,7 @@ import React, { useState, useEffect } from 'react';
 import { Download, Bookmark, Trash2, X, PlusCircle, Check, HelpCircle } from 'lucide-react';
 import { usePostsStore } from '../../hooks/use-posts-store';
 import { EXPORT_COLUMNS_MAP, exportPostsToCSV, downloadCSVFile } from '../../lib/csv-exporter';
+import { exportPostsToCatalogJsonV3 } from '../../lib/catalog-exporter';
 
 interface ExportDialogProps {
   isOpen: boolean;
@@ -23,6 +24,9 @@ export const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose }) =
     saveExportProfile,
     deleteExportProfile,
   } = usePostsStore();
+
+  // [AI-EDIT] Переключатель форматов экспорта: CSV / JSON v3 | 2026-06-20 06:40
+  const [exportFormat, setExportFormat] = useState<'csv' | 'json_v3'>('csv');
 
   // Доступные для экспорта колонки
   const exportableColumnsKeys = Object.keys(EXPORT_COLUMNS_MAP);
@@ -89,6 +93,15 @@ export const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose }) =
       alert('Нет постов для экспорта! Проверьте настроенные фильтры.');
       return;
     }
+
+    if (exportFormat === 'json_v3') {
+      const dateStr = new Date().toISOString().slice(0, 10);
+      const timeStr = new Date().toTimeString().slice(0, 5).replace(':', '-');
+      exportPostsToCatalogJsonV3(filteredPosts, `catalog_export_v3_${dateStr}_${timeStr}.json`);
+      onClose();
+      return;
+    }
+
     if (selectedColumns.length === 0) {
       alert('Пожалуйста, выберите хотя бы одну колонку для сохранения.');
       return;
@@ -112,8 +125,8 @@ export const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose }) =
         {/* Хедер модалки */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 text-left">
           <div className="text-left">
-            <h3 className="text-base font-bold text-slate-800 dark:text-white text-left">Настройка экспорта в CSV</h3>
-            <p className="text-xs text-slate-500 text-left">Выберите колонки и экспортируйте {filteredPosts.length} отфильтрованных постов</p>
+            <h3 className="text-base font-bold text-slate-800 dark:text-white text-left">Экспорт товаров</h3>
+            <p className="text-xs text-slate-500 text-left">Выберите формат и настройте параметры выгрузки ({filteredPosts.length} постов)</p>
           </div>
           <button
             id="close-modal"
@@ -128,7 +141,38 @@ export const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose }) =
         {/* Тело модалки */}
         <div className="flex-1 overflow-y-auto p-6 space-y-6 text-left">
           
-          {/* Блок 1: Сохраненные конфигурационные пресеты по ТЗ (до 5шт) */}
+          {/* Переключатель формата экспорта */}
+          <div className="flex items-center gap-4 bg-slate-50 dark:bg-slate-950 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800">
+            <span className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-widest pl-2">Формат выгрузки:</span>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setExportFormat('csv')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold cursor-pointer transition-all border-0 ${
+                  exportFormat === 'csv'
+                    ? 'bg-indigo-600 text-white shadow-xs'
+                    : 'bg-white dark:bg-slate-900 text-slate-750 hover:bg-slate-100 dark:hover:bg-slate-800'
+                }`}
+              >
+                CSV (Аналитика)
+              </button>
+              <button
+                type="button"
+                onClick={() => setExportFormat('json_v3')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold cursor-pointer transition-all border-0 ${
+                  exportFormat === 'json_v3'
+                    ? 'bg-indigo-600 text-white shadow-xs'
+                    : 'bg-white dark:bg-slate-900 text-slate-750 hover:bg-slate-100 dark:hover:bg-slate-800'
+                }`}
+              >
+                JSON v3 (Витрина)
+              </button>
+            </div>
+          </div>
+
+          {exportFormat === 'csv' ? (
+            <>
+              {/* Блок 1: Сохраненные конфигурационные пресеты по ТЗ (до 5шт) */}
           <div id="presets-section" className="space-y-3 text-left">
             <label className="block text-xs font-bold text-slate-605 dark:text-slate-400 uppercase tracking-widest flex items-center gap-1 text-left">
               <Bookmark size={12} className="text-indigo-505" />
@@ -243,13 +287,24 @@ export const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose }) =
               })}
             </div>
           </div>
+            </>
+          ) : (
+            <div className="p-4 bg-slate-50 dark:bg-slate-950/40 rounded-xl border border-slate-100 dark:border-slate-800 text-sm">
+              <p className="font-semibold text-slate-700 dark:text-slate-200 mb-1">Экспорт в JSON v3 (Контракт Витрины)</p>
+              <p className="text-xs text-slate-500">
+                Выгрузка будет произведена в расширенном формате JSON согласно контракту <code className="px-1 py-0.5 bg-slate-100 dark:bg-slate-900 rounded text-indigo-600 dark:text-indigo-400">CatalogProductV3</code>. Этот файл готов для прямого импорта в приложение Витрины. Настройка колонок для этого формата не требуется.
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Футер модалки */}
         <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/40 text-left">
           <span className="text-[11px] text-slate-500 flex items-center gap-1 font-medium text-left">
             <HelpCircle size={12} className="text-slate-402 shrink-0" />
-            Выгруженный CSV содержит разметку UTF-8 BOM, читается в Excel напрямую.
+            {exportFormat === 'csv' 
+              ? 'Выгруженный CSV содержит разметку UTF-8 BOM, читается в Excel напрямую.' 
+              : 'Файл JSON v3 оптимизирован для импорта структуры каталога и медиа-ресурсов.'}
           </span>
           <div className="flex items-center gap-2">
             <button
@@ -264,11 +319,15 @@ export const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose }) =
               id="download-csv-action"
               type="button"
               onClick={handleTriggerExport}
-              disabled={filteredPosts.length === 0 || selectedColumns.length === 0}
+              disabled={filteredPosts.length === 0 || (exportFormat === 'csv' && selectedColumns.length === 0)}
               className="flex items-center gap-1.5 px-5 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-750 dark:bg-indigo-500 dark:hover:bg-indigo-650 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg shadow-sm transition-all cursor-pointer border-0"
             >
               <Download size={14} />
-              Скачать CSV ({filteredPosts.length} постов)
+              {exportFormat === 'csv' ? (
+                <>Скачать CSV ({filteredPosts.length} постов)</>
+              ) : (
+                <>Скачать JSON v3 ({filteredPosts.length} постов)</>
+              )}
             </button>
           </div>
         </div>

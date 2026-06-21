@@ -75,7 +75,7 @@ export function fetchVkJsonp<T = any>(methodName: string, params: Record<string,
     };
 
     // Строим строку параметров запроса
-    const queryParams = {
+    const queryParams: Record<string, any> = {
       ...params,
       callback: callbackName
     };

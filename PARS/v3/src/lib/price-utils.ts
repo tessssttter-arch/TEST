@@ -176,7 +176,7 @@ function getCandidates(text: string, config: PriceConfig): PriceCandidate[] {
 
   // 1. Поиск диапазонов (например, "500-700 руб" или "от 1200 до 1500 рублей")
   const rangeReg = /(?:от\s+)?(\d{1,3}(?:[\s\.]?\d{3})*(?:\.\d{1,2})?)\s*(?:-|–|—|до)\s*(\d{1,3}(?:[\s\.]?\d{3})*(?:\.\d{1,2})?)\s*(руб\.?|рублей|р\.?|₽|rub|RUB|USD|\$|EUR|€|у\.?е\.?|тенге|₸|kzt|KZT)?/gi;
-  let match;
+  let match: RegExpExecArray | null;
   rangeReg.lastIndex = 0;
   while ((match = rangeReg.exec(cleanText)) !== null) {
     const minValStr = match[1];
@@ -308,10 +308,11 @@ function getCandidates(text: string, config: PriceConfig): PriceCandidate[] {
       continue;
     }
 
-    const valRaw = cleanNumber(valStr);
-    if (!isNaN(valRaw)) {
-      const isDuplicate = candidates.some(c => Math.abs(c.index - match.index) < 15);
-      if (!isDuplicate) {
+     const valRaw = cleanNumber(valStr);
+     if (!isNaN(valRaw)) {
+       const matchIndex = match.index;
+       const isDuplicate = candidates.some(c => Math.abs(c.index - matchIndex) < 15);
+       if (!isDuplicate) {
         candidates.push({
           value: valRaw,
           originalValue: valRaw,

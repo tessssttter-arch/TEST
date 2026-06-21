@@ -10,6 +10,7 @@ import React, { useState, useEffect } from 'react';
 import { Download, Bookmark, Trash2, X, PlusCircle, Check, HelpCircle } from 'lucide-react';
 import { usePostsStore } from '../../hooks/use-posts-store';
 import { EXPORT_COLUMNS_MAP, exportPostsToCSV, downloadCSVFile } from '../../lib/csv-exporter';
+import { exportPostsToCatalogJson } from '../../lib/catalog-exporter';
 
 interface ExportDialogProps {
   isOpen: boolean;

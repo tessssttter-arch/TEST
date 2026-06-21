@@ -16,10 +16,12 @@ import { PostsTable } from './posts-table';
 import { GalleryViewer } from './gallery-viewer';
 import { ExportDialog } from './export-dialog';
 import { VkIntegration } from './vk-integration';
-import { Download, Info, Trash2, Sparkles, LayoutGrid, List } from 'lucide-react';
+import { Download, Info, Trash2, Sparkles, LayoutGrid, List, UploadCloud } from 'lucide-react';
+import { CsvImportDialog } from './csv-import-dialog';
 
 export const VkAnalyzer: React.FC = () => {
   const { posts, filteredPosts, clearAll } = usePostsStore();
+  const [isCsvImportOpen, setIsCsvImportOpen] = useState<boolean>(false);
   const [isExportOpen, setIsExportOpen] = useState<boolean>(false);
   const [viewMode, setViewMode] = useState<'gallery' | 'table'>('gallery'); // Галерея по умолчанию для максимального визуального эффекта
 
@@ -45,15 +47,24 @@ export const VkAnalyzer: React.FC = () => {
         {/* Кнопка сброса текущей сессии */}
         {posts.length > 0 && (
           <div className="flex items-center gap-3">
-            <button
-              id="clear-workspace-btn"
-              type="button"
-              onClick={clearAll}
-              className="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-rose-500 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/20 border border-rose-200 dark:border-rose-900/30 rounded-lg transition-all cursor-pointer bg-transparent"
-            >
-              <Trash2 size={13} />
-              Очистить рабочую область
-            </button>
+             <button
+               id="open-csv-import-btn"
+               type="button"
+               onClick={() => setIsCsvImportOpen(true)}
+               className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-900/20 dark:text-emerald-400 dark:hover:bg-emerald-900/40 border border-emerald-200 dark:border-emerald-800 rounded-lg transition-all cursor-pointer"
+             >
+               <UploadCloud size={13} />
+               Загрузить правки из CSV
+             </button>
+             <button
+               id="clear-workspace-btn"
+               type="button"
+               onClick={clearAll}
+               className="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-rose-500 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/20 border border-rose-200 dark:border-rose-900/30 rounded-lg transition-all cursor-pointer bg-transparent"
+             >
+               <Trash2 size={13} />
+               Очистить рабочую область
+             </button>
           </div>
         )}
       </header>
@@ -161,9 +172,10 @@ export const VkAnalyzer: React.FC = () => {
           </section>
 
           {/* Оверлей Диалога Экспорта */}
-          <ExportDialog isOpen={isExportOpen} onClose={() => setIsExportOpen(false)} />
-        </div>
-      ) : (
+           <ExportDialog isOpen={isExportOpen} onClose={() => setIsExportOpen(false)} />
+           <CsvImportDialog isOpen={isCsvImportOpen} onClose={() => setIsCsvImportOpen(false)} />
+          </div>
+       ) : (
         /* Инструкция при пустой рабочей области */
         <div id="instructions-card" className="p-6 bg-slate-50 dark:bg-slate-900/10 border border-slate-205 dark:border-slate-800 rounded-2xl max-w-3xl mx-auto space-y-4">
           <div className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400">

@@ -9,6 +9,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { usePostsStore } from '../../hooks/use-posts-store';
+import { VKPost } from '../../types/vk';
 import { VisualIntelligence, VisualDuplicateResult } from '../../plugins/visual-intelligence';
 import { TextIntelligence } from '../../plugins/text-intelligence';
 import { VKPluginManager } from '../../plugins/vk-manager';
@@ -31,6 +32,13 @@ import {
   FileText,
   RotateCcw
 } from 'lucide-react';
+
+const getPostTitle = (post: VKPost): string => {
+  const title = post.processedText || post.text_edited || post.originalText || post.text_original || '';
+  const firstLine = title.split(/\r?\n/)[0].trim();
+  if (!firstLine) return '';
+  return firstLine.length > 80 ? `${firstLine.slice(0, 80)}...` : firstLine;
+};
 
 // Построение регулярного выражения по выделенному фрагменту (Few-Shot Pattern Builder)
 const generateRegexFromSelection = (originalText: string, selectedText: string): { regexStr: string; error?: string } => {
@@ -105,7 +113,7 @@ export const GalleryViewer: React.FC = () => {
   const [visibleLimit, setVisibleLimit] = useState<number>(30);
 
   // Детальный просмотр и обучение паттерну цены донора
-  const [selectedPostForDetail, setSelectedPostForDetail] = useState<any | null>(null);
+  const [selectedPostForDetail, setSelectedPostForDetail] = useState<VKPost | null>(null);
   const [selectedText, setSelectedText] = useState<string>('');
   const [generatedPattern, setGeneratedPattern] = useState<string>('');
   const [patternErrorMessage, setPatternErrorMessage] = useState<string>('');
@@ -159,7 +167,7 @@ export const GalleryViewer: React.FC = () => {
   const handleSaveTextEdit = () => {
     if (selectedPostForDetail) {
       updatePostDetails(selectedPostForDetail.post_id, editedTextValue, selectedPostForDetail.price_edited);
-      setSelectedPostForDetail(prev => prev ? { ...prev, text_edited: editedTextValue, is_manually_edited: true } : null);
+       setSelectedPostForDetail((prev: VKPost | null) => prev ? { ...prev, text_edited: editedTextValue, is_manually_edited: true } : null);
       setIsEditingProcessedText(false);
     }
   };
@@ -169,7 +177,7 @@ export const GalleryViewer: React.FC = () => {
       const cleanDesc = selectedPostForDetail.processedText || selectedPostForDetail.text_original || '';
       setEditedTextValue(cleanDesc);
       updatePostDetails(selectedPostForDetail.post_id, cleanDesc, selectedPostForDetail.price_edited);
-      setSelectedPostForDetail(prev => prev ? { ...prev, text_edited: cleanDesc, is_manually_edited: false } : null);
+       setSelectedPostForDetail((prev: VKPost | null) => prev ? { ...prev, text_edited: cleanDesc, is_manually_edited: false } : null);
       setIsEditingProcessedText(false);
     }
   };
@@ -464,8 +472,8 @@ export const GalleryViewer: React.FC = () => {
                 <div className="relative aspect-square w-full bg-slate-50 dark:bg-slate-950 overflow-hidden shrink-0">
                   {hasImages ? (
                     <img
-                      src={post.images[currentSlide].url}
-                      alt={post.title || 'Картинка товара'}
+                       src={post.images[currentSlide].url}
+                       alt={getPostTitle(post) || 'Картинка товара'}
                       referrerPolicy="no-referrer"
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
@@ -586,7 +594,7 @@ export const GalleryViewer: React.FC = () => {
 
                     {/* Название */}
                     <h5 className="font-extrabold text-xs text-slate-800 dark:text-slate-200 line-clamp-1 text-left">
-                      {post.title || 'Пост без заголовка'}
+                      {getPostTitle(post) || 'Пост без заголовка'}
                     </h5>
                   </div>
 
@@ -676,7 +684,7 @@ export const GalleryViewer: React.FC = () => {
                     ОБУЧАЮЩИЙ РЕЖИМ (FEW-SHOT LEARNER)
                   </span>
                   <h4 className="text-base font-extrabold text-slate-800 dark:text-white mt-1">
-                    {selectedPostForDetail.title || 'Пост без названия'}
+                    {getPostTitle(selectedPostForDetail) || 'Пост без названия'}
                   </h4>
                   <p className="text-[11px] text-slate-500 mt-0.5">
                     ID поста: <span className="font-mono">{selectedPostForDetail.post_id}</span> | Поставщик (owner_id): <span className="font-mono font-semibold text-slate-700 dark:text-slate-300">{selectedPostForDetail.owner_id}</span>
